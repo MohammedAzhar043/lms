@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Courses - LearnByTech{% endblock %}
+{% block content %}
+<h1>Courses</h1>
+{% if courses %}
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Teacher ID</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.id }}</td>
+            <td>{{ course.title }}</td>
+            <td>{{ course.description or '-' }}</td>
+            <td>{{ course.teacher_id }}</td>
+            <td>{{ course.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No courses yet.</p>
+{% endif %}
+{% endblock %}

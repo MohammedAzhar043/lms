@@ -1,7 +1,8 @@
 # LearnByTech - Flask Application
 # Segment 1: Project setup, config, models, DB create_all
+# Segment 2: Base template, Read (list users, list courses)
 
-from flask import Flask
+from flask import Flask, render_template
 from models import db, User, Course
 
 app = Flask(__name__)
@@ -18,8 +19,22 @@ db.init_app(app)
 
 @app.route('/')
 def home():
-    """Simple route to verify app runs - Segment 1."""
-    return 'LearnByTech - Project is running!'
+    """Home page - uses base template (Segment 2)."""
+    return render_template('home.html')
+
+
+@app.route('/users')
+def list_users():
+    """Read: list all users (Segment 2)."""
+    users = User.query.all()
+    return render_template('user_list.html', users=users)
+
+
+@app.route('/courses')
+def list_courses():
+    """Read: list all courses (Segment 2)."""
+    courses = Course.query.all()
+    return render_template('course_list.html', courses=courses)
 
 
 # Create all tables when app runs (first time)
