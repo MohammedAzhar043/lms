@@ -2,6 +2,7 @@
 {% block title %}Courses - LearnByTech{% endblock %}
 {% block content %}
 <h1>Courses</h1>
+<p><a href="{{ url_for('course_create') }}">Add Course</a></p>
 {% if courses %}
 <table border="1" cellpadding="8">
     <thead>
@@ -11,21 +12,23 @@
             <th>Description</th>
             <th>Teacher ID</th>
             <th>Status</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for course in courses %}
         <tr>
             <td>{{ course.id }}</td>
-            <td>{{ course.title }}</td>
+            <td><a href="{{ url_for('course_detail', id=course.id) }}">{{ course.title }}</a></td>
             <td>{{ course.description or '-' }}</td>
             <td>{{ course.teacher_id }}</td>
             <td>{{ course.status }}</td>
+            <td><a href="{{ url_for('course_edit', id=course.id) }}">Edit</a> | <a href="{{ url_for('course_delete', id=course.id) }}">Delete</a></td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>No courses yet.</p>
+<p>No courses yet. <a href="{{ url_for('course_create') }}">Add course</a>.</p>
 {% endif %}
 {% endblock %}

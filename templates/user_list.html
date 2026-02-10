@@ -10,20 +10,22 @@
             <th>Username</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for user in users %}
         <tr>
             <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
+            <td><a href="{{ url_for('user_detail', id=user.id) }}">{{ user.username }}</a></td>
             <td>{{ user.email }}</td>
             <td>{{ user.role }}</td>
+            <td><a href="{{ url_for('edit_user', id=user.id) }}">Edit</a> | <a href="{{ url_for('delete_user', id=user.id) }}">Delete</a></td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>No users yet.</p>
+<p>No users yet. <a href="{{ url_for('register') }}">Register</a> to add one.</p>
 {% endif %}
 {% endblock %}

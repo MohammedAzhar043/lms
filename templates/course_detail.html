@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} - LearnByTech{% endblock %}
+{% block content %}
+<h1>Course Detail</h1>
+<table border="1" cellpadding="8">
+    <tr><th>ID</th><td>{{ course.id }}</td></tr>
+    <tr><th>Title</th><td>{{ course.title }}</td></tr>
+    <tr><th>Description</th><td>{{ course.description or '-' }}</td></tr>
+    <tr><th>Teacher</th><td>{{ course.teacher.username }} ({{ course.teacher.email }})</td></tr>
+    <tr><th>Status</th><td>{{ course.status }}</td></tr>
+</table>
+<p><a href="{{ url_for('course_edit', id=course.id) }}">Edit</a> | <a href="{{ url_for('course_delete', id=course.id) }}">Delete</a> | <a href="{{ url_for('list_courses') }}">Back to Courses</a></p>
+{% endblock %}
