@@ -15,6 +15,17 @@
     </nav>
     <hr>
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, msg in messages %}
+        {% if category == 'error' %}
+        <p style="color: red;">{{ msg }}</p>
+        {% else %}
+        <p style="color: green;">{{ msg }}</p>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
 </body>

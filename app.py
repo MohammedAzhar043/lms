@@ -9,10 +9,13 @@
 # Segment 8: Course Read (list + detail)
 # Segment 9: Course Update and Delete
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, User, Course
 
 app = Flask(__name__)
+
+# Secret key required for session (used by flash messages)
+app.config['SECRET_KEY'] = 'learnbytech-secret-key-change-in-production'
 
 # Database configuration (use your actual password)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -46,16 +49,51 @@ def list_courses():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Create: user registration (Segment 3). GET = form, POST = save and redirect."""
+    """Create: user registration (Segment 3). Validation + Flash (Segment 1 & 2)."""
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        role = request.form['role']
-        user = User(username=username, email=email, password=password, role=role)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('list_users'))
+        username = (request.form.get('username') or '').strip()
+        email = (request.form.get('email') or '').strip()
+        password = (request.form.get('password') or '')
+        role = request.form.get('role', '').strip()
+
+        # Backend validation (Segment 1 & 2)
+        if not username:
+            flash('Username is required.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if not email:
+            flash('Email is required.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if '@' not in email:
+            flash('Enter a valid email address.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if not password:
+            flash('Password is required.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if len(password) < 4:
+            flash('Password must be at least 4 characters.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if role not in ('student', 'teacher'):
+            flash('Please select a valid role.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+
+        # Unique username and email (Segment 2)
+        if User.query.filter_by(username=username).first():
+            flash('This username is already taken.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+        if User.query.filter_by(email=email).first():
+            flash('This email is already registered.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
+
+        try:
+            user = User(username=username, email=email, password=password, role=role)
+            db.session.add(user)
+            db.session.commit()
+            flash('Registration successful.', 'success')
+            return redirect(url_for('list_users'))
+        except Exception:
+            db.session.rollback()
+            flash('Something went wrong. Please try again.', 'error')
+            return render_template('register.html', username=username, email=email, role=role)
     return render_template('register.html')
 
 
@@ -68,15 +106,56 @@ def user_detail(id):
 
 @app.route('/user/edit/<int:id>', methods=['GET', 'POST'])
 def edit_user(id):
-    """Update: edit user (Segment 5). GET = form with data, POST = save and redirect."""
+    """Update: edit user (Segment 5). Validation + Flash (Segment 3)."""
     user = User.query.get_or_404(id)
     if request.method == 'POST':
-        user.username = request.form['username']
-        user.email = request.form['email']
-        user.password = request.form['password']
-        user.role = request.form['role']
-        db.session.commit()
-        return redirect(url_for('list_users'))
+        username = (request.form.get('username') or '').strip()
+        email = (request.form.get('email') or '').strip()
+        password = (request.form.get('password') or '')
+        role = request.form.get('role', '').strip()
+
+        # Backend validation (Segment 3)
+        if not username:
+            flash('Username is required.', 'error')
+            return render_template('user_edit.html', user=user)
+        if not email:
+            flash('Email is required.', 'error')
+            return render_template('user_edit.html', user=user)
+        if '@' not in email:
+            flash('Enter a valid email address.', 'error')
+            return render_template('user_edit.html', user=user)
+        if not password:
+            flash('Password is required.', 'error')
+            return render_template('user_edit.html', user=user)
+        if len(password) < 4:
+            flash('Password must be at least 4 characters.', 'error')
+            return render_template('user_edit.html', user=user)
+        if role not in ('student', 'teacher'):
+            flash('Please select a valid role.', 'error')
+            return render_template('user_edit.html', user=user)
+
+        # Unique username/email (exclude current user)
+        other = User.query.filter_by(username=username).first()
+        if other and other.id != user.id:
+            flash('This username is already taken.', 'error')
+            return render_template('user_edit.html', user=user)
+        other = User.query.filter_by(email=email).first()
+        if other and other.id != user.id:
+            flash('This email is already registered.', 'error')
+            return render_template('user_edit.html', user=user)
+
+        try:
+            user.username = username
+            user.email = email
+            user.password = password
+            user.role = role
+            db.session.commit()
+            flash('User updated successfully.', 'success')
+            return redirect(url_for('list_users'))
+        except Exception:
+            db.session.rollback()
+            flash('Something went wrong. Please try again.', 'error')
+            return render_template('user_edit.html', user=user)
     return render_template('user_edit.html', user=user)
 
 
@@ -91,15 +170,44 @@ def delete_user(id):
 
 @app.route('/course/create', methods=['GET', 'POST'])
 def course_create():
-    """Create: add course (Segment 7). GET = form, POST = save and redirect."""
+    """Create: add course (Segment 7). Validation + Flash (Segment 3)."""
     if request.method == 'POST':
-        title = request.form['title']
-        description = request.form.get('description', '')
-        teacher_id = request.form['teacher_id']
-        course = Course(title=title, description=description, teacher_id=int(teacher_id))
-        db.session.add(course)
-        db.session.commit()
-        return redirect(url_for('list_courses'))
+        title = (request.form.get('title') or '').strip()
+        description = (request.form.get('description') or '').strip()
+        teacher_id_raw = request.form.get('teacher_id', '').strip()
+
+        # Backend validation (Segment 3)
+        if not title:
+            flash('Course title is required.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_form.html', teachers=teachers, title=title, description=description)
+        if not teacher_id_raw:
+            flash('Please select a teacher.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_form.html', teachers=teachers, title=title, description=description)
+        try:
+            teacher_id = int(teacher_id_raw)
+        except ValueError:
+            flash('Invalid teacher selected.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_form.html', teachers=teachers, title=title, description=description)
+        teacher = User.query.filter_by(id=teacher_id, role='teacher').first()
+        if not teacher:
+            flash('Invalid teacher selected.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_form.html', teachers=teachers, title=title, description=description)
+
+        try:
+            course = Course(title=title, description=description, teacher_id=teacher_id)
+            db.session.add(course)
+            db.session.commit()
+            flash('Course created successfully.', 'success')
+            return redirect(url_for('list_courses'))
+        except Exception:
+            db.session.rollback()
+            flash('Something went wrong. Please try again.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_form.html', teachers=teachers, title=title, description=description)
     teachers = User.query.filter_by(role='teacher').all()
     return render_template('course_form.html', teachers=teachers)
 
@@ -113,14 +221,46 @@ def course_detail(id):
 
 @app.route('/course/edit/<int:id>', methods=['GET', 'POST'])
 def course_edit(id):
-    """Update: edit course (Segment 9). GET = form with data, POST = save and redirect."""
+    """Update: edit course (Segment 9). Validation + Flash (Segment 3)."""
     course = Course.query.get_or_404(id)
     if request.method == 'POST':
-        course.title = request.form['title']
-        course.description = request.form.get('description', '')
-        course.teacher_id = int(request.form['teacher_id'])
-        db.session.commit()
-        return redirect(url_for('list_courses'))
+        title = (request.form.get('title') or '').strip()
+        description = (request.form.get('description') or '').strip()
+        teacher_id_raw = request.form.get('teacher_id', '').strip()
+
+        # Backend validation (Segment 3)
+        if not title:
+            flash('Course title is required.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_edit.html', course=course, teachers=teachers)
+        if not teacher_id_raw:
+            flash('Please select a teacher.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_edit.html', course=course, teachers=teachers)
+        try:
+            teacher_id = int(teacher_id_raw)
+        except ValueError:
+            flash('Invalid teacher selected.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_edit.html', course=course, teachers=teachers)
+        teacher = User.query.filter_by(id=teacher_id, role='teacher').first()
+        if not teacher:
+            flash('Invalid teacher selected.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_edit.html', course=course, teachers=teachers)
+
+        try:
+            course.title = title
+            course.description = description
+            course.teacher_id = teacher_id
+            db.session.commit()
+            flash('Course updated successfully.', 'success')
+            return redirect(url_for('list_courses'))
+        except Exception:
+            db.session.rollback()
+            flash('Something went wrong. Please try again.', 'error')
+            teachers = User.query.filter_by(role='teacher').all()
+            return render_template('course_edit.html', course=course, teachers=teachers)
     teachers = User.query.filter_by(role='teacher').all()
     return render_template('course_edit.html', course=course, teachers=teachers)
 

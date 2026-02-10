@@ -5,11 +5,11 @@
 <form method="post" action="{{ url_for('register') }}">
     <p>
         <label>Username:</label><br>
-        <input type="text" name="username" required>
+        <input type="text" name="username" value="{{ username or '' }}" required>
     </p>
     <p>
         <label>Email:</label><br>
-        <input type="email" name="email" required>
+        <input type="email" name="email" value="{{ email or '' }}" required>
     </p>
     <p>
         <label>Password:</label><br>
@@ -18,8 +18,8 @@
     <p>
         <label>Role:</label><br>
         <select name="role" required>
-            <option value="student">Student</option>
-            <option value="teacher">Teacher</option>
+            <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+            <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
         </select>
     </p>
     <p>
