@@ -9,7 +9,8 @@
 # Segment 8: Course Read (list + detail)
 # Segment 9: Course Update and Delete
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 from models import db, User, Course
 
 app = Flask(__name__)
@@ -27,13 +28,91 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 
+def login_required(f):
+    """Decorator: redirect to login if user not in session (Segment 3 - Auth)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Please log in to continue.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def role_required(role):
+    """Decorator: abort 403 if session role does not match (Segment 4 - Auth)."""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not session.get('user_id'):
+                flash('Please log in to continue.', 'error')
+                return redirect(url_for('login'))
+            if session.get('role') != role:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 @app.route('/')
 def home():
     """Home page - uses base template (Segment 2)."""
     return render_template('home.html')
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login: verify user, set session, redirect by role (Segment 1 - Auth)."""
+    if request.method == 'POST':
+        username = (request.form.get('username') or '').strip()
+        password = (request.form.get('password') or '')
+
+        if not username or not password:
+            flash('Username and password are required.', 'error')
+            return render_template('login.html')
+
+        user = User.query.filter_by(username=username).first()
+        if not user or user.password != password:
+            flash('Invalid username or password.', 'error')
+            return render_template('login.html')
+
+        session['user_id'] = user.id
+        session['role'] = user.role
+        session['username'] = user.username
+
+        if user.role == 'teacher':
+            return redirect(url_for('teacher_dashboard'))
+        return redirect(url_for('student_dashboard'))
+
+    return render_template('login.html')
+
+
+@app.route('/student/dashboard')
+@login_required
+@role_required('student')
+def student_dashboard():
+    """Student dashboard placeholder (Segment 1 - Auth)."""
+    return render_template('student_dashboard.html')
+
+
+@app.route('/teacher/dashboard')
+@login_required
+@role_required('teacher')
+def teacher_dashboard():
+    """Teacher dashboard placeholder (Segment 1 - Auth)."""
+    return render_template('teacher_dashboard.html')
+
+
+@app.route('/logout')
+def logout():
+    """Logout: clear session, redirect to home (Segment 2 - Auth)."""
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('home'))
+
+
 @app.route('/users')
+@login_required
 def list_users():
     """Read: list all users (Segment 2)."""
     users = User.query.all()
@@ -41,6 +120,7 @@ def list_users():
 
 
 @app.route('/courses')
+@login_required
 def list_courses():
     """Read: list all courses (Segment 2)."""
     courses = Course.query.all()
@@ -98,6 +178,7 @@ def register():
 
 
 @app.route('/user/<int:id>')
+@login_required
 def user_detail(id):
     """Read: single user detail (Segment 4)."""
     user = User.query.get_or_404(id)
@@ -105,6 +186,7 @@ def user_detail(id):
 
 
 @app.route('/user/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_user(id):
     """Update: edit user (Segment 5). Validation + Flash (Segment 3)."""
     user = User.query.get_or_404(id)
@@ -160,6 +242,7 @@ def edit_user(id):
 
 
 @app.route('/user/delete/<int:id>')
+@login_required
 def delete_user(id):
     """Delete: remove user (Segment 6). Redirect to list after delete."""
     user = User.query.get_or_404(id)
@@ -169,6 +252,8 @@ def delete_user(id):
 
 
 @app.route('/course/create', methods=['GET', 'POST'])
+@login_required
+@role_required('teacher')
 def course_create():
     """Create: add course (Segment 7). Validation + Flash (Segment 3)."""
     if request.method == 'POST':
@@ -213,6 +298,7 @@ def course_create():
 
 
 @app.route('/course/<int:id>')
+@login_required
 def course_detail(id):
     """Read: single course detail (Segment 8)."""
     course = Course.query.get_or_404(id)
@@ -220,6 +306,8 @@ def course_detail(id):
 
 
 @app.route('/course/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@role_required('teacher')
 def course_edit(id):
     """Update: edit course (Segment 9). Validation + Flash (Segment 3)."""
     course = Course.query.get_or_404(id)
@@ -266,12 +354,20 @@ def course_edit(id):
 
 
 @app.route('/course/delete/<int:id>')
+@login_required
+@role_required('teacher')
 def course_delete(id):
     """Delete: remove course (Segment 9). Redirect to list after delete."""
     course = Course.query.get_or_404(id)
     db.session.delete(course)
     db.session.commit()
     return redirect(url_for('list_courses'))
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Custom 403: Access denied (Segment 4 - Auth)."""
+    return render_template('403.html'), 403
 
 
 # Create all tables when app runs (first time)
