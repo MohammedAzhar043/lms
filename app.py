@@ -12,6 +12,7 @@
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 from models import db, User, Course
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -26,6 +27,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Bind db to this app
 db.init_app(app)
+
+# Security (Segment 1): generate_password_hash when saving passwords;
+# check_password_hash when verifying login (Segment 2 & 3).
 
 
 def login_required(f):
@@ -72,7 +76,7 @@ def login():
             return render_template('login.html')
 
         user = User.query.filter_by(username=username).first()
-        if not user or user.password != password:
+        if not user or not check_password_hash(user.password, password):
             flash('Invalid username or password.', 'error')
             return render_template('login.html')
 
@@ -165,7 +169,8 @@ def register():
             return render_template('register.html', username=username, email=email, role=role)
 
         try:
-            user = User(username=username, email=email, password=password, role=role)
+            hashed_password = generate_password_hash(password)
+            user = User(username=username, email=email, password=hashed_password, role=role)
             db.session.add(user)
             db.session.commit()
             flash('Registration successful.', 'success')
@@ -229,7 +234,7 @@ def edit_user(id):
         try:
             user.username = username
             user.email = email
-            user.password = password
+            user.password = generate_password_hash(password)
             user.role = role
             db.session.commit()
             flash('User updated successfully.', 'success')
