@@ -1,5 +1,3 @@
-# LearnByTech - Models
-# User and Course models for Segment 1
 
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -9,7 +7,7 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
-    """User table: students and teachers. Role stored here (no admin)."""
+    """User table: students and teachers. Role stored here ."""
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
