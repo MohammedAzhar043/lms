@@ -1,30 +1,42 @@
 {% extends "base.html" %}
 {% block title %}Edit {{user.username}} - LearnByTech{% endblock %}
 {% block content %}
-<h1>Edit User Details </h1>
-<form method="post" action="{{ url_for('edit_user', id=user.id) }}" >
-    <p>
-        <label>Username:</label><br>
-        <input type="text" name="username" value="{{user.username}}" required >
-    </p>
-     <p>
-        <label>Email:</label><br>
-        <input type="email" name="email" required value="{{user.email}}">
-    </p>
-     <p>
-        <label>Password:</label><br>
-        <input type="password" name="password" placeholder="Enter new password" required>
-    </p>
-    <p>
-        <label>Role:</label><br>
-        <select name="role" required>
-            <option value="student" {% if user.role =='student' %} selected {% endif %}>Student</option>
-            <option value="teacher" {% if user.role =='teacher' %} selected {% endif %}>Teacher</option>
-        </select>
-    </p>
-    <button type="submit">Update User  </button>
-</form>
-<p>
-<a href="{{url_for('list_users')}}">Back to Users List</a> | <a href="{{url_for('user_detail', id=user.id)}}">Cancel</a>
-</p>
+
+<div class="user-edit-page">
+    <div class="user-edit-left">
+        <h1>Edit User </h1>
+        <img src="{{url_for('static',filename='images/login-illustration.png.png')}}" alt="text">
+    </div>
+    <div class="user-edit-right">
+        <form method="post" action="{{ url_for('edit_user', id=user.id) }}" class="user-edit-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username" value="{{user.username}}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" required value="{{user.email}}">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter new password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select id="role" name="role" required>
+                    <option value="student" {% if user.role=='student' %} selected {% endif %}>Student</option>
+                    <option value="teacher" {% if user.role=='teacher' %} selected {% endif %}>Teacher</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-edit-submit">Update User</button>
+            <p class="user-edit-link">
+                <a href="{{url_for('list_users')}}">Back to Users List</a>
+                <a href="{{url_for('user_detail', id=user.id)}}">Cancel</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+
+
 {% endblock %}

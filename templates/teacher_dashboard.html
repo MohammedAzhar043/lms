@@ -1,9 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Teacher Dashboard - LearnByTech{% endblock %}
 {% block content %}
-<h1>Teacher Dashboard</h1>
-<p>Welcome {% if session.get('username')%},{{session.username}} {% endif%}</p>
-<p>
-    <a href="{{url_for('list_courses')}}">View Courses</a> | <a href="{{url_for('course_create')}}">Add Course</a>
-</p>
+<div class="dashboard-teacher">
+    <div class="dashboard-welcome">
+        <h1>Hello, {{session.get('username','Teacher')}} ! </h1>
+        <p>Manage your courses</p>
+    </div>
+    <div class="dashboard-actions">
+         <a href="{{url_for('list_courses')}}" class="action-card">
+            <div class="action-card-icon">
+                📚
+            </div>
+            <h2> View Courses</h2>
+            <p>View and Manage your courses</p>
+        </a>
+
+        <a href="{{url_for('course_create')}}" class="action-card">
+            <div class="action-card-icon">
+                ➕
+            </div>
+            <h2> Add Course</h2>
+            <p>Create new Course</p>
+        </a>
+    </div>
+</div>
 {% endblock %}

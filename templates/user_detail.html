@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 {% block title %}{{user.username }} - LearnByTech{% endblock %}
 {% block content %}
-<h1>User Details</h1>
-<table border="1" cellpadding="8">
-   
-    <tr>
-        <th>ID</th>
-        <td>{{user.id}}</td>
-    </tr>
-     <tr>
-        <th>Username</th>
-        <td>{{user.username}}</td>
-    </tr>
-     <tr>
-        <th>Email</th>
-        <td>{{user.email}}</td>
-    </tr>
-     <tr>
-        <th>Role</th>
-        <td>{{user.role}}</td>
-    </tr>
- 
-</table>
+<div class="user-detail">
+    <div class="user-detail-list">
+        <div class="user-detail-row user-detail-row-head">
+            <span>Username</span>
+            <span>Email</span>
+            <span>Role</span>
+            <span>Actions</span>
+        </div>
+        <div class="user-deatil-row">
+            <span>{{user.username}}</span>
+            <span>{{user.email}}</span>
+            <span>{{user.role}}</span>
+            <span class="user-detail-actions">
+                <a href="{{url_for('edit_user', id=user.id)}}">Edit</a>
+                <a href="{{url_for('delete_user',id=user.id)}}" onclick="return confirm('are you sure ?')">Delete</a>
+            </span>
+        </div>
+    </div>
+    <p class="user-detail-back"><a href="{{url_for('list_users')}}">Back to Users List</a></p>
 
-<p><a href="{{url_for('list_users')}}">Back to Users List</a> | <a href="{{url_for('edit_user', id=user.id)}}">Edit User</a> | <a href="{{url_for('delete_user',id=user.id)}}" onclick="return confirm('are you sure ?')">Delete</a></p>
+</div>
+
 {% endblock %}

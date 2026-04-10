@@ -1,6 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Home - LearnByTech{% endblock %}
 {% block content %}
-<h1>Welcome to LearnByTech</h1>
-<p>Project is running. Use the navbar to explore.</p>
+<div class="home-section hero">
+
+    <div class="hero-text">
+        <p class="hero-tagline">An Online Platform</p>
+        <h1>A Smart Platform for <br> Tutors & Students</h1>
+        <a class="hero-cta" href="{{url_for('register')}}">Start Free Trail</a>
+
+    </div>
+    <div class="hero-img">
+        <img src="{{url_for('static',filename='images/hero.png.png')}}" alt="text">
+    </div>
+
+</div>
+
+<div class="home-section stats">
+    <div class="stats-inner">
+
+        <div class="stat-card">
+            <span class="number">500+</span>
+            <span class="label">Experts</span>
+        </div>
+
+        <div class="stat-card">
+            <span class="number">10K+</span>
+            <span class="label">Students Enrolled</span>
+        </div>
+
+        <div class="stat-card">
+            <span class="number">5K+</span>
+            <span class="label">Total Classes</span>
+        </div>
+
+    </div>
+</div>
+
+<div class="home-section features">
+
+    <div class="features-img">
+        <img src="{{url_for('static',filename='images/features.png.png')}}" alt="students">
+    </div>
+
+    <div class="features-text">
+        <h2>Key Features:</h2>
+        <ul class="features-list">
+            <li>Access to structured course content anytime, anywhere</li>
+            <li>Video lessons, coding practice, and learning resources</li>
+            <li>Hands-on assignments and real-time projects</li>
+            <li>Regular tests and evaluations to track progress</li>
+            <li>Practice problems for DSA, Aptitude, and Technical Skills</li>
+            <li>Resume templates and placement preparation resources</li>
+            <li>Progress dashboard to monitor skill development</li>
+        </ul>
+    </div>
+
+</div>
 {% endblock %}

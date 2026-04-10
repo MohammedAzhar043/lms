@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Add Video - {{course.title}}{% endblock %}
+{% block content %}
+<div class="video-form-page">
+    <div class="video-form-left">
+        <h1>Add Video</h1>
+        <p>{{course.title}}</p>
+        <img src="{{url_for('static',filename='images/login-illustration.png.png')}}" alt="text">
+    </div>
+    <div class="video-form-right">
+        <form action="{{url_for('create_video',id=course.id)}}" method="post" enctype="multipart/form-data"
+            class="video-form">
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" value="{{title or ''}}" required>
+            </div>
+            <div class="form-group">
+                <label for="file">File:</label>
+                <input type="file" id="file" name="file" accept="video/*" required>
+            </div>
+            <button class="btn-video-upload" type="submit">Upload</button>
+                       <p class="video-form-links">
+                <a href="{{url_for('list_videos',id=course.id)}}">Back to Videos</a>
+                <a href="{{url_for('list_videos',id=course.id)}}">Cancel</a>
+            </p>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+
+   
+          
+
+ 

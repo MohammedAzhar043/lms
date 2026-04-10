@@ -1,31 +1,39 @@
 {% extends "base.html" %}
 {% block title %}{{course.title }} - LearnByTech{% endblock %}
 {% block content %}
-<h1>Course Details</h1>
-<table border="1" cellpadding="8">
-   
-    <tr>
-        <th>ID</th>
-        <td>{{course.id}}</td>
-    </tr>
-     <tr>
-        <th>Title</th>
-        <td>{{course.title}}</td>
-    </tr>
-     <tr>
-        <th>Description</th>
-        <td>{{course.description or '-'}}</td>
-    </tr>
-     <tr>
-        <th>Teacher ID</th>
-        <td>{{course.teacher_id}}</td>
-    </tr>
- 
-</table>
+<div class="course-detail">
+    <p class="course-detail-back"><a href="{{ url_for('list_courses') }}">Back to courses</a></p>
 
-<p>
-    <a href="{{url_for('course_edit',id=course.id)}}">Edit</a> |
-    <a href="{{url_for('course_delete',id=course.id)}}" onclick="return confirm('Delete this Course?')">Delete</a> |
-    <a href="{{url_for('list_courses')}}">Back to courses</a>
-</p>
+    <div class="course-detail-card">
+        <h1>{{ course.title }}</h1>
+        <p class="course-detail-teacher">By {{ course.teacher.username if course.teacher else 'Unknown' }}</p>
+        <p class="course-detail-desc">{{ course.description or '-' }}</p>
+
+        {% if session.get('role') == 'student' %}
+        <div class="course-detail-student">
+            {% if user_enrollment %}
+            <p>Your status: {{ user_enrollment.status }}</p>
+            <p><a href="{{ url_for('my_enrollments') }}">My Enrollments</a></p>
+            {% else %}
+            <form method="post" action="{{ url_for('enroll_in_course', id=course.id) }}">
+                <button type="submit" class="btn-enroll">Enroll</button>
+            </form>
+            <p><a href="{{ url_for('my_enrollments') }}">My Enrollments</a></p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if session.get('role') == 'teacher' and course.teacher_id == session.get('user_id') %}
+        <div class="course-detail-teacher-actions">
+            <a href="{{ url_for('course_enrollments', id=course.id) }}">View Enrollments</a>
+            <a href="{{ url_for('list_videos', id=course.id) }}">Videos</a>
+            <a href="{{ url_for('course_edit', id=course.id) }}">Edit</a>
+            <a href="{{ url_for('course_delete', id=course.id) }}" onclick="return confirm('Delete this course?')">Delete</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+
 {% endblock %}
